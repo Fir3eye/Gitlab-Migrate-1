@@ -1,10 +1,13 @@
 name: fir3eye1/first-project
+
 on:
   push:
   workflow_dispatch:
+
 concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,6 +15,11 @@ jobs:
       image: node
     timeout-minutes: 60
     steps:
+    - name: Install Git LFS
+      run: |
+        apt-get update
+        apt-get install -y git-lfs
+        git lfs install
     - uses: actions/checkout@v4.1.0
       with:
         fetch-depth: 20
@@ -25,28 +33,27 @@ jobs:
           node_modules
           package-lock.json
 
-
-deploy:
-  needs: build
-  runs-on: ubuntu-latest
-  container:
-    image: node
-  timeout-minutes: 60
-  steps:
-  - name: Install Git LFS
-    run: |
-      apt-get update
-      apt-get install -y git-lfs
-      git lfs install
-  - uses: actions/checkout@v4.1.0
-    with:
-      fetch-depth: 20
-      lfs: true
-  - uses: actions/download-artifact@v4.1.0
-    with:
-      name: "${{ github.job }}"
-      path: node_modules
-  - run: |
-      npm install
-      node app.js &
-      sleep infinity
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: node
+    timeout-minutes: 60
+    steps:
+    - name: Install Git LFS
+      run: |
+        apt-get update
+        apt-get install -y git-lfs
+        git lfs install
+    - uses: actions/checkout@v4.1.0
+      with:
+        fetch-depth: 20
+        lfs: true
+    - uses: actions/download-artifact@v4.1.0
+      with:
+        name: "${{ github.job }}"
+        path: node_modules
+    - run: |
+        npm install
+        node app.js &
+        sleep infinity
